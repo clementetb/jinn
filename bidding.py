@@ -32,7 +32,7 @@ def get_real_issue_function(issue, resolution):
     return steps, values
 
 
-def get_issue_function(issue):
+def get_issue_function(issue, resolution):
     values = None
     steps = None
 
@@ -41,20 +41,20 @@ def get_issue_function(issue):
     if issue['type'].lower() == 'discrete':
         steps, values = get_discrete_issue_function(issue)
     elif issue['type'].lower() == 'real':
-        steps, values = get_real_issue_function(issue)
+        steps, values = get_real_issue_function(issue, resolution)
     else:
         raise NotImplemented('Issue function not implemented')
 
     return steps, values * weight
 
 
-def get_utility_function(template):
+def get_utility_function(template, resolution):
     asteps = []
     avalues = []
 
     for objective in template:
         for issue in objective:
-            steps, values = get_issue_function(issue)
+            steps, values = get_issue_function(issue, resolution)
 
             asteps.append(steps)
             avalues.append(values)
@@ -63,8 +63,8 @@ def get_utility_function(template):
 
 
 def generate_bids(template1, template2, resolution):
-    s1, v1 = get_utility_function(template1)
-    s2, v2 = get_utility_function(template2)
+    s1, v1 = get_utility_function(template1, resolution)
+    s2, v2 = get_utility_function(template2, resolution)
 
     bids_values = cartesian(s1).transpose()
     bids_values1 = cartesian(v1)
