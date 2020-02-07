@@ -1,0 +1,71 @@
+<utility_space number_of_issues="7">
+	<objective index="1" etype="objective" type="objective"
+		description="" name="Booking">
+		<weight index="2" value="0.15" />
+		<weight index="3" value="0.10" />
+		<weight index="4" value="0.15" />
+		<weight index="5" value="0.30" />
+		<weight index="6" value="0.10" />
+		<weight index="7" value="0.15" />
+		<weight index="8" value="0.05" />
+		<issue index="2" etype="real" vtype="real" type="real" name="Price">
+			<range lowerbound="0" upperbound="1" />
+			<evaluator etype="real" ftype="linear" parameter1="-1"
+				parameter0="1" />
+		</issue>
+		<issue index="3" etype="real" vtype="real" type="real" name="Cancellation">
+			<range lowerbound="0" upperbound="1" />
+			<evaluator etype="real" ftype="linear" parameter1="-1"
+				parameter0="1" />
+		</issue>
+		<issue index="4" name="Diet" etype="discrete" vtype="discrete" type="discrete">
+				<item index="1" value="none" evaluation="0"></item>
+				<item index="2" value="breakfast" evaluation="50"></item>
+				<item index="3" value="half (breakfast+lunch)" evaluation="70"></item>
+				<item index="4" value="half (breakfast+dinner)" evaluation="70"></item>
+				<item index="5" value="half (lunch+dinner)" evaluation="70"></item>
+				<item index="6" value="full" evaluation="100"></item>
+		</issue>
+		<issue index="5" name="Type of Room" etype="discrete" vtype="discrete" type="discrete">
+				<item index="1" value="4 individual" evaluation="10"></item>
+				<item index="2" value="2 twin rooms" evaluation="40"></item>
+				<item index="3" value="1 triple room 1 individual" evaluation="80"></item>
+				<item index="4" value="1 appartment" evaluation="100"></item>
+		</issue>
+		<issue index="6" name="Payment Method" etype="discrete" vtype="discrete" type="discrete">
+			<item index="1" value="cash" evaluation="20">
+				</item>
+				<item index="2" value="credit card" evaluation="60">
+				</item>
+				<item index="3" value="bank transfer" evaluation="20">
+				</item>
+				<item index="4" value="deferred payment 3 months" evaluation="100">
+				</item>
+				<item index="5" value="deferred payment 6 months" evaluation="100"></item>
+		</issue>
+		<issue index="7" name="Room Orientation" etype="discrete" vtype="discrete" type="discrete">
+				<item index="1" value="inner garden" evaluation="40">
+				</item>
+				<item index="2" value="main street" evaluation="50">
+				</item>
+				<item index="3" value="pool" evaluation="90">
+				</item>
+				<item index="4" value="sea" evaluation="100">
+				</item>
+				<item index="5" value="outer garden" evaluation="90"></item>
+		</issue>
+		<issue index="8" name="Free Ammenity" etype="discrete" vtype="discrete" type="discrete">
+				<item index="1" value="gym" evaluation="40">
+				</item>
+				<item index="2" value="internet connection" evaluation="70">
+				</item>
+				<item index="3" value="1 drink per day" evaluation="20">
+				</item>
+				<item index="4" value="1 free spa session" evaluation="100">
+				</item>
+				<item index="5" value="pool" evaluation="80"></item>
+				<item index="6" value="extended cable tv" evaluation="100"></item>
+				<item index="7" value="free guided tour" evaluation="90"></item>
+			</issue>
+	</objective>
+</utility_space>

@@ -1,0 +1,70 @@
+<negotiation_template number_of_sessions="1">
+	<agent class="agents.ABMPAgent2" name="Hotel"
+		utility_space="advgroupbooking_hotel.xml">
+	</agent>
+	<agent class="agents.ABMPAgent2" name="Alice"
+		utility_space="advgroupbooking_alice.xml">
+	</agent>
+	<utility_space number_of_issues="7">
+		<objective index="1" etype="objective" type="objective"
+			description="" name="Booking">
+			<issue index="2" name="Price" vtype="real" type="real">
+				<range lowerbound="0" upperbound="1"></range>
+			</issue>
+			<issue index="3" name="Cancellation" vtype="real" type="real">
+				<range lowerbound="0" upperbound="1"></range>
+			</issue>
+			
+			<issue index="4" name="Diet" etype="discrete" vtype="discrete" type="discrete">
+				<item index="1" value="none"></item>
+				<item index="2" value="breakfast"></item>
+				<item index="3" value="half (breakfast+lunch)"></item>
+				<item index="4" value="half (breakfast+dinner)"></item>
+				<item index="5" value="half (lunch+dinner)"></item>
+				<item index="6" value="full"></item>
+			</issue>
+			<issue index="5" name="Type of Room" etype="discrete" vtype="discrete" type="discrete">
+				<item index="1" value="4 individual"></item>
+				<item index="2" value="2 twin rooms"></item>
+				<item index="3" value="1 triple room 1 individual"></item>
+				<item index="4" value="1 appartment"></item>
+			</issue>
+			<issue index="6" name="Payment Method" etype="discrete" vtype="discrete" type="discrete">
+				<item index="1" value="cash">
+				</item>
+				<item index="2" value="credit card">
+				</item>
+				<item index="3" value="bank transfer">
+				</item>
+				<item index="4" value="deferred payment 3 months">
+				</item>
+				<item index="5" value="deferred payment 6 months"></item>
+			</issue>
+			<issue index="7" name="Room Orientation" etype="discrete" vtype="discrete" type="discrete">
+				<item index="1" value="inner garden">
+				</item>
+				<item index="2" value="main street">
+				</item>
+				<item index="3" value="pool">
+				</item>
+				<item index="4" value="sea">
+				</item>
+				<item index="5" value="outer garden"></item>
+			</issue>
+			<issue index="8" name="Free Ammenity" etype="discrete" vtype="discrete" type="discrete">
+				<item index="1" value="gym">
+				</item>
+				<item index="2" value="internet connection">
+				</item>
+				<item index="3" value="1 drink per day">
+				</item>
+				<item index="4" value="1 free spa session">
+				</item>
+				<item index="5" value="pool"></item>
+				<item index="6" value="extended cable tv"></item>
+				<item index="7" value="free guided tour"></item>
+			</issue>
+			
+		</objective>
+	</utility_space>
+</negotiation_template>
