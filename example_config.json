@@ -1,0 +1,25 @@
+{
+    "auction_name": "An example",
+    "manager_name": "jinn-manager",
+    "manager_password": "secret",
+    "host": "localhost",
+    "xmpp_port": 5222,
+    "manager_strategy": "jinn.strategies.Tournament",
+    "negotiation_protocol": "alternating_offers",
+    "profiles": [
+        "templates/Camera/camera_buyer_utility.xml",
+        "templates/Camera/camera_seller_utility.xml"
+    ],
+    "agents": [
+        {
+            "name": "agent-1",
+            "secret": "secret",
+            "strategy": "jinn.strategy.DummyStrategy"
+        },
+        {
+            "name": "agent-2",
+            "secret": "secret",
+            "strategy": "jinn.strategy.DummyStrategy"
+        }
+    ]
+}
