@@ -9,7 +9,7 @@ class ManagerAgent(Agent):
         pass
 
 
-class ManagerAgentBehavior(CyclicBehaviour):
+class AlternatingOffersBehavior(CyclicBehaviour):
     async def on_start(self):
         pass
 
