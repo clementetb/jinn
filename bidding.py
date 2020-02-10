@@ -33,7 +33,7 @@ class UtilitySpace():
 
         index = random.choice(np.arange(valids.size))
 
-        return Bid(self.utility_space[index], self.discount, valids[index])
+        return Bid(self.utility_space[valids[index]], self.discount, valids[index])
 
     def get_by_index(self, index):
         return Bid(self.utility_space[index], self.discount, index)
