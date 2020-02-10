@@ -14,6 +14,8 @@ class TimeAgent(JinnAgent):
         self.timeline = timeline
         self.us = utility_space
 
+        self.initialize()
+
     def aspiration(self):
         current_time = self.timeline.get_time()
         return (1.0 - (1.0 - self.ru) * pow(current_time, 1.0 / self.beta))

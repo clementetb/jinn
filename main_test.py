@@ -16,6 +16,7 @@ from timeline import Timeline
 from agent import JinnAgent
 
 from jinn_timeagent import TimeAgent
+from jinn_agents import ConcederAgent, BoulwareAgent, Tit4TatRelativeAgent
 
 NEGOTIATION_TIME = 180
 
@@ -29,7 +30,10 @@ if __name__ == "__main__":
     tl = Timeline(180)
     
     tab = TimeAgent('ta_buyer@gtirouter.dsic.upv.es', 'aaa', 'TA Buyer', us_buyer, tl)
-    tas = TimeAgent('ta_seller@gtirouter.dsic.upv.es', 'aaa', 'TA Seller', us_seller, tl)
+    #tas = TimeAgent('ta_seller@gtirouter.dsic.upv.es', 'aaa', 'TA Seller', us_seller, tl)
+    #tas = ConcederAgent('ta_seller@gtirouter.dsic.upv.es', 'aaa', 'TA Seller', us_seller, tl)
+    #tas = BoulwareAgent('ta_seller@gtirouter.dsic.upv.es', 'aaa', 'TA Seller', us_seller, tl)
+    tas = Tit4TatRelativeAgent('ta_seller@gtirouter.dsic.upv.es', 'aaa', 'TA Seller', us_seller, tl)
 
     JinnAgent.set_opponents(tab, tas)
 
