@@ -10,7 +10,8 @@ from genius_template_importer import import_template
 from bidding import generate_bids
 from helpers import is_pareto_efficient
 
-from bidding import Bid, UtilitySpace
+from bid import Bid
+from utility_space import UtilitySpace
 from timeline import Timeline
 from agent import JinnAgent
 

@@ -6,6 +6,9 @@ from helpers import cartesian
 from genius_template_importer import import_template
 from helpers import is_pareto_efficient
 
+from bid import Bid
+
+# Class UtilitySpace
 class UtilitySpace():
 
     def __init__(self, template, resolution=0.05):
