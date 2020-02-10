@@ -103,10 +103,19 @@ def parse_objective(objective):
 def import_template(filename):
     doc = minidom.parse(filename)
 
+    template = dict()
+
     utility_space = doc.getElementsByTagName('utility_space')[0]
 
     objectives = []
     for objective in utility_space.getElementsByTagName('objective'):
         objectives.append(parse_objective(objective))
 
-    return objectives
+    template['objectives'] = objectives
+    try:
+        template['discount'] = float(utility_space.getElementsByTagName('discount_factor')[0].attributes['value'].value)
+    except:
+        pass
+
+    return template #objectives
+

@@ -10,7 +10,7 @@ if __name__ == "__main__":
     template1 = import_template("templates/Camera/camera_buyer_utility.xml")
     template2 = import_template("templates/Camera/camera_seller_utility.xml")
 
-    bids = generate_bids(template1, template2, 0.05)
+    bids = generate_bids(template1['objectives'], template2['objectives'], 0.05)
 
     points = bids[:, -2:]
     pareto_points = is_pareto_efficient(points, return_mask=True)

@@ -1,5 +1,8 @@
 import json
 import time
+
+import jsonpickle
+
 from asyncio import CancelledError
 
 from loguru import logger
@@ -8,17 +11,21 @@ from spade.behaviour import CyclicBehaviour
 from spade.message import Message
 from spade.template import Template
 
-# from .helpers import random_position
-from .protocol import NEGOTIATION_PROTOCOL, \
+from protocol import NEGOTIATION_PROTOCOL, \
         BID_ACCEPT_PERFORMATIVE, BID_REFUSE_PERFORMATIVE, BID_OFFER_PERFORMATIVE, NEGOTIATION_END_PERFORMATIVE, \
-        JINN_READY_TO_NEGOTIATE, JINN_WAITING_OFFER_RESPONSE, JINN_WAITING_ACCEPTANCE_RESPONSE, JINN_ACCEPTED_OFFER, \
         JINN_READY, JINN_DONE, JINN_WAITING
+
+from bidding import Bid, UtilitySpace
+from timeline import Timeline
 
 # from .utils import CUSTOMER_WAITING, CUSTOMER_IN_DEST, TRANSPORT_MOVING_TO_CUSTOMER, CUSTOMER_IN_TRANSPORT, \
 #     TRANSPORT_IN_CUSTOMER_PLACE, CUSTOMER_LOCATION, StrategyBehaviour, request_path, status_to_str
 
 
 class JinnAgent(Agent):
+
+    INSTANCES = 1
+
     def __init__(self, agentjid, password):
         super().__init__(agentjid, password)
 
@@ -26,35 +33,46 @@ class JinnAgent(Agent):
         self.ru = float
         # Factor para el cálculo de la utilidad en términos temporales Inmutable durante una negociación.
         self.beta = float
-
         # Número de ofertas a recordar para negociación con memoria (tit-for-tat). Inmutable durante una negociación.
         self.delta = float
+
+        self.us = UtilitySpace
 
         self.sentOffers = list()
         self.opponentOffers = list()
 
-        self.timeline = None
+        self.timeline = Timeline
+
+        self.last_action = None
+        self.last_content = None
+
         self.turn = None
         self.session = None
 
-        self.agent_id = None
-        self.strategy = None
+        self.agent_id = JinnAgent.INSTANCES
+        JinnAgent.INSTANCES += 1
 
-        self.status = JINN_READY
+        #Examples: Conceder, Boulware... or any human-friendly name
+        #self.name = 'Name'
+        self.strategy = NegotiationBehaviour()
+
+        self.status = None
         self.acceptedBid = Bid
 
-        self.opponent = JinnAgent
+        self.opponent_id = None
+        self.opponent_name = str
 
         self.init_time = None
 
         self.type_service = "JinnAgent"
+        self.running_strategy = False
 
     # Por qué async?
     async def setup(self):
         try:
             template = Template()
             template.set_metadata("protocol", NEGOTIATION_PROTOCOL)
-            negotation_b = NegotiationBehaviour()
+            negotation_b = self.strategy
             self.add_behaviour(negotation_b, template)
             while not self.has_behaviour(negotation_b):
                 logger.warning("Customer {} could not create NegotiationBehaviour. Retrying...".format(self.agent_id))
@@ -63,17 +81,16 @@ class JinnAgent(Agent):
             logger.error("EXCEPTION creating NegotiationBehaviour in Jinn Agent {}: {}".format(self.agent_id, e))
 
 
-    def run_strategy(self):
-        """import json
-        Runs the strategy for the customer agent.
-        """
-        if not self.running_strategy:
-            template1 = Template()
-            template1.set_metadata("protocol", NEGOTIATION_PROTOCOL)
-            template2 = Template()
-            template2.set_metadata("protocol", BID_PROTOCOL)
-            self.add_behaviour(self.strategy(), template1 | template2)
-            self.running_strategy = True
+    # Not really needed at the moment
+    # def run_strategy(self):
+    #     """import json
+    #     Runs the strategy for the customer agent.
+    #     """
+    #     if not self.running_strategy:
+    #         negotiation_template = Template()
+    #         negotiation_template.set_metadata("protocol", NEGOTIATION_PROTOCOL)
+    #         self.add_behaviour(self.strategy(), negotiation_template)
+    #         self.running_strategy = True
 
 
     def set_id(self, agent_id):
@@ -84,15 +101,36 @@ class JinnAgent(Agent):
         """
         self.agent_id = agent_id
 
-
-    def set_directory(self, directory_id):
+    def set_opponent(self, agent_jid, agent_name):
         """
-        Sets the directory JID address
+        Sets the agent identifier
         Args:
-            directory_id (str): the DirectoryAgent jid
-
+            agent_id (str): The new Agent Id
         """
-        self.directory_id = directory_id
+        self.opponent_id = agent_jid
+        self.opponent_name = agent_name
+
+    @staticmethod
+    def set_opponents(a=Agent, b=Agent):
+        a.set_opponent(b.jid, b.name)
+        b.set_opponent(a.jid, a.name)
+        a.status = JINN_READY
+        b.status = JINN_WAITING
+
+    def get_utility(self, bid, discounted=False):
+        if discounted:
+            return self.us.utility_space[bid.index][-1] * pow(self.us.discount, self.timeline.get_time())
+        else:
+            return self.us.utility_space[bid.index][-1]
+
+    def accept_offer(bid=Bid):
+        raise NotImplementedError
+
+    def propose_offer():
+        raise NotImplementedError
+
+    def initialize():
+        raise NotImplementedError
 
 
 class NegotiationBehaviour(CyclicBehaviour):
@@ -116,17 +154,26 @@ class NegotiationBehaviour(CyclicBehaviour):
         """
         if content is None or len(content) == 0:
             content = {
-                "opponent": str(self.agent.opponent),
-                "bid": bid
+                "jinn_id": str( self.agent.agent_id),
+                "jinn_name": str(self.agent.name),
+                "opponent_id": str(self.agent.opponent_id),
+                "opponent_name": str(self.agent.opponent_name),
+                "bid": jsonpickle.encode(bid),
+                "bid_index": str(bid.index),
+                "bid_id": str(bid.id)
             }
 
         msg = Message()
-        msg.to = str(self.agent.opponent)
+        msg.to = str(self.agent.opponent_id)
         msg.set_metadata("protocol", NEGOTIATION_PROTOCOL)
         msg.set_metadata("performative", BID_OFFER_PERFORMATIVE)
-        msg.body = content
+        msg.body = json.dumps(content)
+
+        self.agent.last_action = BID_OFFER_PERFORMATIVE
+        self.agent.last_content = content
+
         await self.send(msg)
-        logger.info("Customer {} sent bid {} to agent {}.".format(self.agent.name, bid.id, self.agent.opponent))
+        logger.info("Agent {} sent bid {} to agent {}.".format(self.agent.name, str( content['bid_id'] ), self.agent.opponent_name))
 
 
     async def accept(self, bid=Bid, content=None):
@@ -135,56 +182,76 @@ class NegotiationBehaviour(CyclicBehaviour):
 
         if content is None or len(content) == 0:
             content = {
-                "jinn_id": str(self.agent.jid),
-                "bid_id": bid.id,
-                "bid": bid
+                "jinn_id": str(self.agent.agent_id),
+                "jinn_name": str(self.agent.name),
+                "opponent_id": str(self.agent.opponent_id),
+                "opponent_name": str(self.agent.opponent_name),
+                "bid": jsonpickle.encode(bid),
+                "bid_index": str(bid.index),
+                "bid_id": str(bid.id)
             }
 
         #for fleetmanager in self.agent.fleetmanagers.keys():  # Send a message to all FleetManagers
         msg = Message()
-        msg.to = str(self.agent.opponent)
+        msg.to = str(self.agent.opponent_id)
         msg.set_metadata("protocol", NEGOTIATION_PROTOCOL)
         msg.set_metadata("performative", BID_ACCEPT_PERFORMATIVE)
         msg.body = json.dumps(content)
+
+        self.agent.last_action = BID_ACCEPT_PERFORMATIVE
+        self.agent.last_content = content
+
         await self.send(msg)
 
-        logger.info("Jinn {} accepted bid {} from {}.".format(self.agent.name, bid.id, self.agent.opponent))
+        logger.info("Jinn {} accepted bid {} from {}.".format(self.agent.name, str(content['bid_id']), self.agent.opponent_name))
 
-    def accept_offer(bid=Bin):
-        raise NotImplementedError
-
-    def propose_offer(bid=Bin):
-        raise NotImplementedError
-
-    def initialize():
-        raise NotImplementedError
-
-    async def refuse(self, bid=Bid, opponent_id=None):
+    async def refuse(self, bid=Bid, content=None):
         """
         """
         reply = Message()
-        reply.to = str(self.agent.opponent)
+        reply.to = str(self.agent.opponent_id)
         reply.set_metadata("protocol", NEGOTIATION_PROTOCOL)
         reply.set_metadata("performative", BID_REFUSE_PERFORMATIVE)
-        content = {
-            "jinn_id": str(self.agent.jid),
-            "opponent_id": str(self.agent.opponent),
-            #"bid": bid,
-            "bid_id": bid.id
-        }
+
+        if content is None or len(content) == 0:
+            content = {
+                "jinn_id": str(self.agent.agent_id),
+                "jinn_name": str(self.agent.name),
+                "opponent_id": str(self.agent.opponent_id),
+                "opponent_name": str(self.agent.opponent_name),
+                "bid": jsonpickle.encode(bid),
+                "bid_index": str(bid.index),
+                "bid_id": str(bid.id)
+            }
+
+        self.agent.last_action = BID_REFUSE_PERFORMATIVE
+        self.agent.last_content = content
+
         reply.body = json.dumps(content)
         await self.send(reply)
 
-        logger.info("Jinn {} refused bid {} from {}.".format(self.agent.name, bid.id, self.agent.opponent))
+        print('content', content['bid_id'])
+        logger.info("Jinn {} refused bid {} from {}.".format(self.agent.name, content['bid_id'] , self.agent.opponent_name))
 
 
     async def run(self):
 
+        time.sleep(0.5)
+        if self.agent.timeline.has_deadline and self.agent.timeline.over_deadline():
+            print('⏰ TIME FINISHED')
+            self.agent.status = JINN_DONE
+            await self.agent.stop()
+
         if self.agent.status == JINN_READY:
-            offer = propose_offer()
-            await self.offer(offer)
-            sentOffers = sentOffers + offer
-            self.agent.status == JINN_WAITING
+            offer = self.agent.propose_offer()
+            if offer is not None:
+                print('🐮 OFFER', offer.index)
+                self.agent.sentOffers = self.agent.sentOffers + [ offer ]
+                self.agent.status == JINN_WAITING
+                await self.offer(offer)
+            else:
+                print('🔥 SLEEP')
+                time.sleep(1)
 
         msg = await self.receive(timeout=1)
 
@@ -198,30 +265,31 @@ class NegotiationBehaviour(CyclicBehaviour):
 
             if performative == BID_OFFER_PERFORMATIVE:
                 ## Se calcula la distancia del taxi que envía la propuesta
-                bid = content.bid
-                jinn_id = content.jinn_id
+                #bid = jsonpickle.decode(content['bid'])
+                print('🐮', (content['bid_index']))
+                bid = self.agent.us.get_by_index(int(content['bid_index']))
 
                 ## Accummulate on offers
-                self.agent.opponentOffers = self.agent.opponentOffers + bid
+                self.agent.opponentOffers = self.agent.opponentOffers + [ bid ]
 
                 logger.info("Bid {} offer from Jinn {} received".format(bid.id, sender))
 
                 ## The offer is accepted according to `accept_offer` implementation.
-                if accept_offer(bid):
-                    logger.info("Jinn {} accepted offer {} from {}".format(self.agent.name, bid.id, jinn_id))
+                if self.agent.accept_offer(bid):
+                    logger.info("🎉 Jinn {} accepted offer {} from {}".format(self.agent.name, bid.id, content['jinn_name']))
                     try:
                         await self.accept(bid)
                         self.agent.status = JINN_DONE
                         self.agent.acceptedBid = bid
-                        self.agent.stop()
+                        await self.agent.stop()
                     except Exception as e:
                         self.agent.status = JINN_READY
                         self.agent.acceptedBid = None
                 ## The offer is not accepted
                 else:
-                    logger.info("Jinn {} refused offer {} from {}".format(self.agent.name, bid.id, jinn_id))
-                    await self.refuse(bid, jinn_id)
+                    logger.info("Jinn {} refused offer {} from {}".format(self.agent.name, bid.id, content['jinn_name']))
                     self.agent.status = JINN_READY
+                    await self.refuse(bid, content)
 
             ## Bid is accepted, Jinn finishes
             elif performative == BID_REFUSE_PERFORMATIVE:
@@ -232,8 +300,13 @@ class NegotiationBehaviour(CyclicBehaviour):
             elif performative == BID_ACCEPT_PERFORMATIVE:
                 #self.agent.acceptedBid = msg.bid
                 self.agent.status = JINN_DONE
-                self.agent.stop()
+                await self.agent.stop()
 
         elif self.agent.status == JINN_WAITING:
-            offer = self.agent.sentOffers[-1]
-            await self.offer(offer)
+            if self.agent.last_action == BID_OFFER_PERFORMATIVE:
+                offer = self.agent.sentOffers[-1]
+                await self.offer(offer, content=self.agent.last_content)
+            if self.agent.last_action == BID_REFUSE_PERFORMATIVE:
+                await self.refuse(content=self.agent.last_content)
+            if self.agent.last_action == BID_ACCEPT_PERFORMATIVE:
+                await self.accept(content=self.agent.last_content)

@@ -1,6 +1,58 @@
 import numpy as np
+import random
 
 from helpers import cartesian
+
+from genius_template_importer import import_template
+from helpers import is_pareto_efficient
+
+
+class UtilitySpace():
+
+    def __init__(self, template, resolution=0.05):
+        self.utility_space = generate_bids_agent(template['objectives'], resolution)
+        self.discount = template['discount']
+
+    def get_offers(self, minut=0, maxut=1):
+        # Filtro por los valores de min/max y se coge random
+        NotImplementedError
+
+
+    def get_random(self, minut=0, maxut=1):
+        
+        print('Limits', minut, maxut)
+        lower = np.ma.masked_less_equal(self.utility_space[:,-1], maxut).mask
+        upper = np.ma.masked_greater_equal(self.utility_space[:,-1], minut).mask
+        #(all_mask = [i for i, x in enumerate(range(len(lower))) if (lower[i] and upper[i])]
+        mask = (lower == True) & (upper == True)
+        valids = np.where(mask == True)[0]
+
+        print('valids.size', valids.size)
+        if valids.size == 0:
+            return None
+
+        index = random.choice(np.arange(valids.size))
+
+        return Bid(self.utility_space[index], self.discount, valids[index])
+
+    def get_by_index(self, index):
+        return Bid(self.utility_space[index], self.discount, index)
+        
+
+
+class Bid():
+    INSTANCES = 1
+
+    def __init__(self, values, discount=1, us_index=None, domain=None):
+        self.domain = domain
+        self.values = values
+        self.discount = discount
+        self.index = us_index
+        self.id = Bid.INSTANCES
+        Bid.INSTANCES += 1
+
+    def get_value(self, index):
+        return self.values[index]
 
 
 def get_discrete_issue_function(issue):
@@ -60,6 +112,17 @@ def get_utility_function(template, resolution):
             avalues.append(values)
 
     return asteps, avalues
+
+
+def generate_bids_agent( template, resolution):
+    s1, v1 = get_utility_function(template, resolution)
+
+    bids_values = cartesian(s1).transpose()
+    bids_values1 = cartesian(v1)
+
+    u1 = np.sum(bids_values1, axis=1)
+
+    return np.vstack([bids_values, u1]).transpose()
 
 
 def generate_bids(template1, template2, resolution):
