@@ -18,7 +18,6 @@ class UtilitySpace():
 
 
     def get_random(self, minut=0, maxut=1):
-        
         print('Limits', minut, maxut)
         lower = np.ma.masked_less_equal(self.utility_space[:,-1], maxut).mask
         upper = np.ma.masked_greater_equal(self.utility_space[:,-1], minut).mask
@@ -36,6 +35,24 @@ class UtilitySpace():
 
     def get_by_index(self, index):
         return Bid(self.utility_space[index], self.discount, index)
+    
+    def get_utility(self):
+        return self.utility_space[:-1]
+
+
+class Bid():
+    INSTANCES = 1
+
+    def __init__(self, values, discount=1, us_index=None, domain=None):
+        self.domain = domain
+        self.values = values
+        self.discount = discount
+        self.index = us_index
+        self.id = Bid.INSTANCES
+        Bid.INSTANCES += 1
+
+    def get_value(self, index):
+        return self.values[index]
 
 def get_discrete_issue_function(issue):
     names = []
