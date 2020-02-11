@@ -19,7 +19,7 @@ from matplot_analyzer import MatplotAgent
 from jinn_timeagent import TimeAgent
 from jinn_agents import ConcederAgent, BoulwareAgent, Tit4TatRelativeAgent
 
-NEGOTIATION_TIME = 10
+NEGOTIATION_TIME = 60
 
 if __name__ == "__main__":
     template1 = import_template("templates/Camera/camera_buyer_utility.xml")
@@ -31,11 +31,11 @@ if __name__ == "__main__":
     tl = Timeline(NEGOTIATION_TIME)
 
     
-    tab = TimeAgent('ta_buyer@gtirouter.dsic.upv.es', 'aaa', 'TA Buyer', us_buyer, tl)
+    tab = TimeAgent('ta_buyer@localhost', 'aaa', 'TA Buyer', us_buyer, tl)
     #tas = TimeAgent('ta_seller@gtirouter.dsic.upv.es', 'aaa', 'TA Seller', us_seller, tl)
     #tas = ConcederAgent('ta_seller@gtirouter.dsic.upv.es', 'aaa', 'TA Seller', us_seller, tl)
     #tas = BoulwareAgent('ta_seller@gtirouter.dsic.upv.es', 'aaa', 'TA Seller', us_seller, tl)
-    tas = Tit4TatRelativeAgent('ta_seller@gtirouter.dsic.upv.es', 'aaa', 'TA Seller', us_seller, tl)
+    tas = Tit4TatRelativeAgent('ta_seller@localhost', 'aaa', 'TA Seller', us_seller, tl)
 
 
     analyzer_agent = MatplotAgent('analyzer@localhost', 'secret',

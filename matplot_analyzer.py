@@ -8,13 +8,13 @@ from helpers import is_pareto_efficient
 
 
 class MatplotAgent(AnalyzerAgent):
-    def __init__(self, jid, password, agent_a_name, agent_a_us: UtilitySpace, agent_b_name, agent_b_us: UtilitySpace):
+    def __init__(self, jid, password, agent_a_name, agent_a_us, agent_b_name, agent_b_us):
         super().__init__(jid, password)
         self.agent_a_name = agent_a_name
         self.agent_b_name = agent_b_name
 
-        self.utility_a = agent_a_us.get_utility()
-        self.utility_b = agent_b_us.get_utility()
+        self.utility_a = agent_a_us.utility_space[:-1]
+        self.utility_b = agent_b_us.utility_space[:-1]
         self.lock = Lock()
         self.offers_a = []
         self.offers_b = []

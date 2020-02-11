@@ -6,8 +6,8 @@ from timeline import Timeline
 class TimeAgent(JinnAgent):
     def __init__(self, agentjid, password, name, utility_space=UtilitySpace, timeline=Timeline):
         super().__init__(agentjid, password)
-        self.ru = 0.0
-        self.beta = 1.0
+        self.ru = 0.5
+        self.beta = .9
 
         self.agent_id = agentjid
 
