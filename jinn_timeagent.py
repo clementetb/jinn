@@ -1,17 +1,20 @@
 from agent import JinnAgent
-from bidding import Bid, UtilitySpace
+from utility_space import UtilitySpace
+from bid import Bid
 from timeline import Timeline
 
 class TimeAgent(JinnAgent):
     def __init__(self, agentjid, password, name, utility_space=UtilitySpace, timeline=Timeline):
         super().__init__(agentjid, password)
-        self.ru = 0.8
-        self.beta = 2.0
+        self.ru = 0.0
+        self.beta = 1.0
 
         self.agent_id = agentjid
 
         self.timeline = timeline
         self.us = utility_space
+
+        self.initialize()
 
     def aspiration(self):
         current_time = self.timeline.get_time()

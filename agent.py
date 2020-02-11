@@ -15,7 +15,8 @@ from protocol import NEGOTIATION_PROTOCOL, \
     BID_ACCEPT_PERFORMATIVE, BID_REFUSE_PERFORMATIVE, BID_OFFER_PERFORMATIVE, NEGOTIATION_END_PERFORMATIVE, \
     JINN_READY, JINN_DONE, JINN_WAITING
 
-from bidding import Bid, UtilitySpace
+from utility_space import UtilitySpace
+from bid import Bid
 from timeline import Timeline
 
 # from .utils import CUSTOMER_WAITING, CUSTOMER_IN_DEST, TRANSPORT_MOVING_TO_CUSTOMER, CUSTOMER_IN_TRANSPORT, \
