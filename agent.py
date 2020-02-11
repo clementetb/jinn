@@ -13,7 +13,7 @@ from spade.template import Template
 
 from protocol import NEGOTIATION_PROTOCOL, \
     BID_ACCEPT_PERFORMATIVE, BID_REFUSE_PERFORMATIVE, BID_OFFER_PERFORMATIVE, NEGOTIATION_END_PERFORMATIVE, \
-    JINN_READY, JINN_DONE, JINN_WAITING
+    JINN_READY, JINN_DONE, JINN_WAITING, ANALYSIS_PROTOCOL, HISTORIC_PERFORMATIVE, ACCEPTANCE_PERFORMATIVE
 
 from utility_space import UtilitySpace
 from bid import Bid
@@ -41,6 +41,7 @@ class JinnAgent(Agent):
 
         self.sentOffers = list()
         self.opponentOffers = list()
+        self.offers_indexes = []
 
         self.timeline = Timeline
 
@@ -182,9 +183,11 @@ class NegotiationBehaviour(CyclicBehaviour):
 
         analysis_msg = Message()
         analysis_msg.to = str(self.agent.analyzer_jid)
-        analysis_msg.set_metadata("protocol", NEGOTIATION_PROTOCOL)
-        analysis_msg.set_metadata("performative", BID_OFFER_PERFORMATIVE)
-        analysis_msg.body = json.dumps(content)
+        analysis_msg.set_metadata("protocol", ANALYSIS_PROTOCOL)
+        analysis_msg.set_metadata("performative", HISTORIC_PERFORMATIVE)
+
+        analysis_msg.body = str(bid.index)
+        
         await self.send(analysis_msg)
 
         logger.info("Agent {} sent bid {} to agent {}.".format(
@@ -216,6 +219,15 @@ class NegotiationBehaviour(CyclicBehaviour):
         self.agent.last_content = content
 
         await self.send(msg)
+
+        analysis_msg = Message()
+        analysis_msg.to = str(self.agent.analyzer_jid)
+        analysis_msg.set_metadata("protocol", ANALYSIS_PROTOCOL)
+        analysis_msg.set_metadata("performative", ACCEPTANCE_PERFORMATIVE)
+
+        analysis_msg.body = str(bid.index)
+        
+        await self.send(analysis_msg)
 
         logger.info("Jinn {} accepted bid {} from {}.".format(
             self.agent.name, str(content['bid_id']), self.agent.opponent_name))
@@ -250,8 +262,6 @@ class NegotiationBehaviour(CyclicBehaviour):
             self.agent.name, content['bid_id'], self.agent.opponent_name))
 
     async def run(self):
-
-        time.sleep(0.5)
         if self.agent.timeline.has_deadline and self.agent.timeline.over_deadline():
             print('⏰ TIME FINISHED')
             self.agent.status = JINN_DONE
@@ -262,11 +272,14 @@ class NegotiationBehaviour(CyclicBehaviour):
             if offer is not None:
                 print('🐮 OFFER', offer.index)
                 self.agent.sentOffers = self.agent.sentOffers + [offer]
+                # self.agent.offers_indexes.append(int(offer.index))
                 self.agent.status == JINN_WAITING
                 await self.offer(offer)
             else:
-                print('🔥 SLEEP')
-                time.sleep(1)
+                # print('🔥 SLEEP')
+
+                # time.sleep(1)
+                pass
 
         msg = await self.receive(timeout=1)
 
@@ -340,13 +353,23 @@ class AnalyzerAgent(Agent):
     def on_proposal(self, name, bid):
         raise NotImplementedError
 
+    def on_acceptance(self, bid):
+        raise NotImplementedError
+
 
 class AnalyzerBehavior(CyclicBehaviour):
     async def run(self):
         msg = await self.receive(timeout=1)
         if msg:
-            performative = msg.get_metadata("performative")
-            body = jsonpickle.decode(msg.body)
-            bid = jsonpickle.decode(body['bid'])
+            protocol = msg.get_metadata("protocol")
+            if protocol is ANALYSIS_PROTOCOL:
+                performative = msg.get_metadata("performative")
+                
+                if performative is HISTORIC_PERFORMATIVE:
+                    bid_index = int(msg.body)
+                    self.agent.on_proposal(str(msg.sender), bid_index)
 
-            self.agent.on_proposal(msg.sender, bid)
+                elif performative is ACCEPTANCE_PERFORMATIVE:
+                    bid_index = int(msg.body)
+                    self.agent.on_acceptance(bid_index)
+

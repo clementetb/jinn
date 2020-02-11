@@ -30,6 +30,7 @@ class TimeAgent(JinnAgent):
         utility = self.get_utility(bid, discounted=True) 
         print('🔥', self.name, aspiration, bid.index, utility)
         if(utility >= aspiration):
+            print('👹', self.name, aspiration, bid.index, utility)
             accept = True
 
         return accept
